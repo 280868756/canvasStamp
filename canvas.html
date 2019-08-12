@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>签章</title>
+    <link rel="stylesheet" href="../static/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="../static/css/font-awesome.min.css" />
+    <style type="text/css">
+        .main-content-inner {
+            float: left;
+            width: 100%;
+        }
+        .page-content {
+            background-color: #fff;
+            position: relative;
+            margin: 0;
+            padding: 8px 20px 24px;
+        }
+        .row {
+            margin-left: -12px;
+            margin-right: -12px;
+        }
+
+        .widget-box.transparent {
+            border-width: 0;
+        }
+
+        .widget-box {
+            padding: 0;
+            -webkit-box-shadow: none;
+            box-shadow: none;
+            margin: 3px 0;
+            border: 1px solid #CCC;
+        }
+        .widget-box.transparent > .widget-header {
+            background: 0 0;
+            filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
+            border-width: 0;
+            border-bottom: 1px solid #DCE8F1;
+            color: #4383B4;
+            padding-left: 3px;
+        }
+        .widget-header > .widget-title {
+            line-height: 36px;
+            padding: 0;
+            margin: 0;
+            display: inline;
+        }
+
+        .lighter {
+            font-weight: lighter;
+        }
+        .widget-header > .widget-title > .ace-icon {
+            margin-right: 5px;
+            font-weight: 400;
+            display: inline-block;
+        }
+
+        .orange {
+            color: #ff892a !important;
+        }
+
+        .ace-icon {
+            text-align: center;
+        }
+        .widget-toolbar {
+            display: inline-block;
+            padding: 0 10px;
+            line-height: 37px;
+            float: right;
+            position: relative;
+        }
+    </style>
+</head>
+<body class="no-skin" style="cursor: auto;">
+    <div class="main-container" id="main-container">
+        <div class="main-content">
+            <div class="main-content-inner">
+                <div class="page-content">
+                    <div class="row">
+                        <div class="col-sm-9">
+                            <div class="widget-box transparent">
+                                <div class="widget-header widget-header-flat">
+                                    <h4 class="widget-title lighter">
+                                        <i class="ace-icon fa fa-star orange"></i>
+                                        合同
+                                    </h4>
+
+                                    <div class="widget-toolbar">
+
+
+                                    </div>
+                                </div>
+
+                                <div class="widget-body">
+                                    <div class="widget-main no-padding">
+                                        <img id="contains" crossorigin="anonymous" width="1240" height="1754" src="">
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="widget-box transparent">
+                                    <button type="button" id="linkDownload">
+                                        <h4 class="widget-title lighter">
+                                            <i class="ace-icon fa fa-star "></i>
+                                            确认签章&nbsp;&nbsp;
+                                        </h4>
+                                    </button>
+
+                                <div class="widget-body">
+                                    <div class="widget-main no-padding">
+                                        <img id="draggable" crossorigin="anonymous" style="cursor: move; position: relative; left: -9.75px; top: -1px;" class="ui-draggable ui-draggable-handle" src="">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <canvas id="canContract" class="hide">
+        您的浏览器不支持 H5 Canvas
+    </canvas>
+    
+    <script src="../static/lib/jquery.min.js"></script>
+    <script src="../static/lib/bootstrap.min.js"></script>
+    <script src="../static/lib/jquery-ui.min.js"></script>
+
+    <script type="text/javascript">
+
+        $(function () {
+           $("#draggable").draggable({ containment: "#contains" });
+        });
+        window.onload = function () {
+        	var imgFileID = location.search.match(new RegExp("[\?\&]" + "contractFileID" + "=([^\&]*)(\&?)", "i"))[1];
+      	    
+     	    var _contractSrc = Config.getImgUrl() + imgFileID; // 合同图片路径
+         	$("#contains").attr('src', _contractSrc);
+
+        	  var _waterSrc = "../static/images/stamp.png";   // 印章图片路径
+          	  $("#draggable").attr('src', _waterSrc);
+          	  
+         	
+            var contract = document.getElementById('canContract');
+            var contractCtx = contract.getContext('2d');
+            var image = document.getElementById('contains');
+            var watermarkImg = document.getElementById('draggable');
+            var maxWidth = 1240, maxHeight = 1754, oriWidth = 0, oriHeight = 0;
+            watermarkImg.src = $("#draggable").attr('src');
+            image.setAttribute('crossOrigin', 'anonymous');
+            image.onload = function () {
+                oriWidth = image.width;
+                oriHeight = image.height;
+                if (oriWidth > maxWidth) {
+                    image.width = maxWidth;
+                }
+                if (oriHeight > maxHeight) {
+                    image.height = maxHeight;
+                }
+            }
+
+            var dl = document.getElementById('linkDownload');
+            var drawContract = function () {
+                contract.width = image.width;
+                contract.height = image.height;
+                contractCtx.drawImage(image, 0, 0, image.width, image.height);
+            }
+
+            function dlCanvas() {
+                drawContract();
+                var _wateroffset = $("#draggable").offset(),
+                    _waterwidth = watermarkImg.width,
+                    _waterheight = watermarkImg.height,
+                    _contractoffset = $("#contains").offset();
+
+                contractCtx.fillStyle = 'rgba(0, 0, 0, 1)';
+                contractCtx.drawImage(watermarkImg, _wateroffset.left - _contractoffset.left, _wateroffset.top - _contractoffset.top, _waterwidth, _waterheight);
+
+                var img = contract.toDataURL("image/jpg;base64;");
+                if (contract.msToBlob) { //for IE
+                    img = img.replace("data:", "");
+                }
+                sumitImageFile(img, contractCode);
+            };
+            dl.addEventListener('click', dlCanvas, false); 
+
+        }
+
+        function sumitImageFile(img) {
+            var params = { "img": img};
+            $.ajax({
+                async: false,
+                type: "POST",
+                contentType: 'application/json',
+                dataType: 'json',
+                url: "stampCustomerContractSubmit",
+                data: JSON.stringify(params),
+                success: function (ret) {
+                	  if (ret.code == "MSG00000") {
+                		  alert("签章成功");
+                		  window.close();
+                      } else {
+                          alert(ret.info);
+                      }
+                }
+            })
+        }
+    </script>
+
+</body>
+</html>
